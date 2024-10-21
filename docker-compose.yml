@@ -1,0 +1,245 @@
+# version: '3.8'
+
+# services:
+#   # Traefik - Gateway and Reverse Proxy
+#   traefik:
+#     image: traefik:v2.10
+#     container_name: traefik
+#     restart: always
+#     command:
+#       - "--api.dashboard=true"
+#       - "--providers.docker=true"
+#       - "--providers.docker.exposedbydefault=true"
+#       - "--entrypoints.web.address=:80"
+#       - "--entrypoints.websecure.address=:443"
+#       - "--log.level=INFO"
+#       - "--metrics.prometheus=true"
+#       - "--metrics.prometheus.addEntryPointsLabels=true"
+#       - "--metrics.prometheus.addServicesLabels=true"
+#       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+#       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+#       - "--certificatesresolvers.myresolver.acme.email=fortismanuel@gmail.com"
+#       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+#       # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#       - "8080:8080"  # Traefik Dashboard
+#     volumes:
+#       - "/var/run/docker.sock:/var/run/docker.sock"
+#       - "./traefik/letsencrypt:/letsencrypt"
+#     networks:
+#       - traefik-net
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.routers.traefik.rule=Host(`traefik.ponmile.com.ng`)"
+#       - "traefik.http.routers.traefik.service=api@internal"
+#       - "traefik.http.routers.traefik.entrypoints=websecure"
+#       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+
+#   # Vaultwarden - Password Manager
+#   vaultwarden:
+#     image: vaultwarden/server:1.25.0
+#     container_name: vaultwarden
+#     restart: unless-stopped
+#     environment:
+#       - DOMAIN=https://warden.localhost
+#       - WEBSOCKET_ENABLED=true
+#     volumes:
+#       - ./vaultwarden-data:/data
+#     networks:
+#       - traefik-net
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.ponmile.com.ng`)"
+#       - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+#       - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver"
+#     expose:
+#       - 80
+#   # Jenkins - CI/CD Server
+#   jenkins:
+#     image: jenkins/jenkins:lts-jdk11
+#     container_name: jenkins
+#     restart: unless-stopped
+#     volumes:
+#       - ./jenkins-data:/var/jenkins_home
+#     networks:
+#       - traefik-net
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
+#       - "traefik.http.routers.jenkins.rule=Host(`jenkins.ponmile.com.ng`)"
+#       - "traefik.http.routers.jenkins.entrypoints=websecure"
+#       - "traefik.http.routers.jenkins.tls.certresolver=myresolver"
+#     expose:
+#       - "8080"
+#   # Prometheus - Monitoring System
+#   prometheus:
+#     image: prom/prometheus:v2.31.1
+#     container_name: prometheus
+#     restart: unless-stopped
+#     volumes:
+#       - /etc/prometheus:/etc/prometheus
+#       - prometheus-data:/prometheus
+#     command:
+#       - '--config.file=/etc/prometheus/prometheus.yml'
+#     ports:
+#       - "9090:9090"
+#     networks:
+#       - traefik-net
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.routers.prometheus.rule=Host(`prometheus.ponmile.com.ng`)"
+#       - "traefik.http.routers.prometheus.entrypoints=websecure"
+#       - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+#     expose:
+#       - "9090"
+
+#   # Grafana - Dashboards for Prometheus
+#   grafana:
+#     image: grafana/grafana:8.3.3
+#     container_name: grafana
+#     restart: unless-stopped
+#     environment:
+#       - GF_SECURITY_ADMIN_PASSWORD=password1
+#     volumes:
+#       - ./grafana-data:/var/lib/grafana
+#     networks:
+#       - traefik-net
+#     labels:
+#       - "traefik.enable=true"
+#       - "traefik.http.routers.grafana.rule=Host(`grafana.ponmile.com.ng`)"
+#       - "traefik.http.routers.grafana.entrypoints=websecure"
+#       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+#     expose:
+#       - "3000"
+# # Network for all services
+# networks:
+#   traefik-net:
+#     driver: bridge
+# volumes:
+#   letsencrypt:  # For SSL certificates storage
+#   vaultwarden-data:  # Vaultwarden data
+#   jenkins-data:  # Jenkins home data
+#   prometheus-data:  # Prometheus data persistence
+#   grafana-data:  # Grafana data persistence
+  
+ 
+version: '3'
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=fortismanuel@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(traefik.ponmile.com.ng)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      # - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+      - "traefik.http.routers.api.middlewares=auth,securityHeaders@docker"
+      
+      # Global HTTP to HTTPS redirection
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
+      - "traefik.http.routers.http-catchall.rule=hostregexp({host:.+})"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=https-redirect"
+      
+      # Security Headers
+      - "traefik.http.middlewares.securityHeaders.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.securityHeaders.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.securityHeaders.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.securityHeaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.securityHeaders.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.securityHeaders.headers.stsPreload=true"
+      - "traefik.http.middlewares.securityHeaders.headers.customResponseHeaders.X-Robots-Tag=none,noarchive,nosnippet,notranslate,noimageindex,"
+
+  vaultwarden:
+    image: vaultwarden/server:1.25.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.rule=Host(vault.ponmile.com.ng)"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver"
+      - "traefik.http.routers.vaultwarden.middlewares=securityHeaders@docker"
+    volumes:
+      - vaultwarden-data:/data
+    environment:
+      - ENABLE_PROMETHEUS=true  
+    networks:
+      - traefik-net
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jenkins.rule=Host(jenkins.ponmile.com.ng)"
+      - "traefik.http.routers.jenkins.entrypoints=websecure"
+      - "traefik.http.routers.jenkins.tls.certresolver=myresolver"
+      - "traefik.http.routers.jenkins.middlewares=securityHeaders@docker"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    networks:
+      - traefik-net
+
+  prometheus:
+    image: prom/prometheus:v2.31.1
+    volumes:
+      - ./prometheus.yml:/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/prometheus.yml'
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(prometheus.ponmile.com.ng)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+      - "traefik.http.routers.prometheus.middlewares=securityHeaders@docker"
+
+  grafana:
+    image: grafana/grafana:8.3.3
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(grafana.ponmile.com.ng)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.routers.grafana.middlewares=securityHeaders@docker"
+
+networks:
+  traefik-net:
+    driver: bridge
+
+volumes:
+  letsencrypt:
+  vaultwarden-data:
+  jenkins-data:
+  prometheus-data:
+  grafana-data:
+
